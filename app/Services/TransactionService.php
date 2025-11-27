@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Transaction;
+use Illuminate\Support\Facades\Log;
 
 class TransactionService
 {
@@ -24,6 +25,30 @@ class TransactionService
 
     public function create($data)
     {
+        // Se for uma transação com parcelamento, criar transações para cada parcela nos meses seguintes
+        if ($data['installment']) {
+            $installmentNumber = $data['installment_number'];
+            $installmentAmount = $data['amount'] / $installmentNumber;
+
+            for ($i = 0; $i <= $installmentNumber; $i++) {
+                $installmentData = [
+                    'user_id' => $data['user_id'],
+                    'amount' => $installmentAmount,
+                    'type_id' => $data['type_id'],
+                    'date' => now()->addMonths($i),
+                    'description' => $data['description'],
+                    'account_id' => $data['account_id'],
+                    'category_id' => $data['category_id'],
+                    'installment' => true,
+                    'installment_number' => $i,
+                ];
+
+                Transaction::create($installmentData);
+            }
+
+            return null;
+        }
+
         return Transaction::create($data);
     }
 
