@@ -30,13 +30,18 @@ class TransactionService
             $installmentNumber = $data['installment_number'];
             $installmentAmount = $data['amount'] / $installmentNumber;
 
-            for ($i = 0; $i <= $installmentNumber; $i++) {
+            $initialDate = \Carbon\Carbon::parse($data['date']);
+
+            for ($i = 1; $i <= $installmentNumber; $i++) {
+
+                $transactionDate = $initialDate->copy()->addMonths($i - 1);
+
                 $installmentData = [
                     'user_id' => $data['user_id'],
                     'amount' => $installmentAmount,
                     'type_id' => $data['type_id'],
-                    'date' => now()->addMonths($i),
-                    'description' => $data['description'],
+                    'date' => $transactionDate,
+                    'description' => $data['description'] . ' ' . $i . '/' . $installmentNumber,
                     'account_id' => $data['account_id'],
                     'category_id' => $data['category_id'],
                     'installment' => true,
