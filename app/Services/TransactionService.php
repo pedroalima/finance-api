@@ -2,82 +2,98 @@
 
 namespace App\Services;
 
-use App\Models\Transaction;
-use Illuminate\Support\Facades\Log;
+use App\Repositories\Contracts\TransactionRepositoryInterface;
+use Carbon\Carbon;
 
 class TransactionService
 {
+    protected $transactionRepository;
+
+    public function __construct(TransactionRepositoryInterface $transactionRepository)
+    {
+        $this->transactionRepository = $transactionRepository;
+    }
+
     public function getAll($month = null, $year = null)
     {
-        $query = Transaction::query();
+        $transactions = $this->transactionRepository->getAll($month, $year);
 
-        if ($month && $year) {
-            $query->whereMonth('date', $month)->whereYear('date', $year);
-        }
-
-        return $query->get();
+        return $this->addRunningTotal($transactions);
     }
 
     public function findById($id)
     {
-        return Transaction::find($id);
+        return $this->transactionRepository->findById($id);
     }
 
-    public function create($data)
+    public function create(array $data)
     {
-        // Se for uma transação com parcelamento, criar transações para cada parcela nos meses seguintes
+        if ($data['description'] == null || $data['description'] == '') {
+            $data['description'] = 'Sem descrição';
+        }
+
         if ($data['installment']) {
-            $installmentNumber = $data['installment_number'];
-            $installmentAmount = $data['amount'] / $installmentNumber;
-
-            $initialDate = \Carbon\Carbon::parse($data['date']);
-
-            for ($i = 1; $i <= $installmentNumber; $i++) {
-
-                $transactionDate = $initialDate->copy()->addMonths($i - 1);
-
-                $installmentData = [
-                    'user_id' => $data['user_id'],
-                    'amount' => $installmentAmount,
-                    'type_id' => $data['type_id'],
-                    'date' => $transactionDate,
-                    'description' => $data['description'] . ' ' . $i . '/' . $installmentNumber,
-                    'account_id' => $data['account_id'],
-                    'category_id' => $data['category_id'],
-                    'installment' => true,
-                    'installment_number' => $i,
-                ];
-
-                Transaction::create($installmentData);
-            }
-
-            return null;
+            return $this->handleInstallments($data);
         }
 
-        return Transaction::create($data);
+        return $this->transactionRepository->create($data);
     }
 
-    public function update($id, $data)
+    public function update($id, array $data)
     {
-        $transaction = Transaction::find($id);
-
-        if (!$transaction) {
-            return null;
-        }
-
-        $transaction->update($data);
-
-        return $transaction;
+        return $this->transactionRepository->update($id, $data);
     }
 
     public function delete($id)
     {
-        $transaction = Transaction::find($id);
+        return $this->transactionRepository->delete($id);
+    }
 
-        if (!$transaction) {
-            return null;
+    private function handleInstallments(array $data)
+    {
+        $installmentNumber = $data['installment_number'];
+        $installmentAmount = $data['amount'] / $installmentNumber;
+
+        $initialDate = Carbon::parse($data['date']);
+
+        for ($i = 1; $i <= $installmentNumber; $i++) {
+
+            $transactionDate = $initialDate->copy()->addMonths($i - 1);
+
+            $installmentData = [
+                'user_id' => $data['user_id'],
+                'amount' => $installmentAmount,
+                'type_id' => $data['type_id'],
+                'date' => $transactionDate,
+                'description' => "{$data['description']} {$i}/{$installmentNumber}",
+                'account_id' => $data['account_id'],
+                'category_id' => $data['category_id'],
+                'installment' => true,
+                'installment_number' => $i,
+            ];
+
+            $this->transactionRepository->create($installmentData);
         }
 
-        return $transaction->delete();;
+        return true;
+    }
+
+    private function addRunningTotal($transactions)
+    {
+        $runningTotal = 0;
+
+        return $transactions->map(function ($transaction) use (&$runningTotal) {
+
+            // Ajuste aqui de acordo com seus tipos (entrada/saída)
+            if ($transaction->type_id == 1) {
+                $runningTotal += $transaction->amount;
+            } else {
+                $runningTotal -= $transaction->amount;
+            }
+
+            $transaction->running_total = round($runningTotal, 2);
+
+            return $transaction;
+        });
     }
 }
