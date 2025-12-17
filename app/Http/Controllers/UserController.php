@@ -8,17 +8,24 @@ use Illuminate\Http\Request;
 class UserController extends Controller
 {
     public function __construct(
-        private UserService $service
+        private UserService $userService
     ) {}
+
+    public function login(Request $request)
+    {
+        return response()->json(
+            $this->userService->login($request->all())
+        );
+    }
 
     public function index()
     {
-        return response()->json($this->service->getAll());
+        return response()->json($this->userService->getAll());
     }
 
     public function show($id)
     {
-        $user = $this->service->findById($id);
+        $user = $this->userService->findById($id);
 
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
@@ -36,7 +43,7 @@ class UserController extends Controller
         ]);
 
         return response()->json(
-            $this->service->create($validated),
+            $this->userService->create($validated),
             201
         );
     }
@@ -50,14 +57,14 @@ class UserController extends Controller
         ]);
 
         return response()->json(
-            $this->service->update($id, $validated),
+            $this->userService->update($id, $validated),
             200
         );
     }
 
     public function destroy($id)
     {
-        $deleted = $this->service->delete($id);
+        $deleted = $this->userService->delete($id);
 
         if ($deleted) {
             return response()->json(null, 204);
