@@ -2,21 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\DTOs\User\LoginDTO;
+use App\DTOs\User\UserDTO;
+use App\Http\Requests\User\LoginRequest;
+use App\Http\Requests\User\StoreUserRequest;
+use App\Http\Requests\User\UpdateUserRequest;
 use App\Services\UserService;
-use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
     public function __construct(
         private UserService $userService
     ) {}
-
-    public function login(Request $request)
-    {
-        return response()->json(
-            $this->userService->login($request->all())
-        );
-    }
 
     public function index()
     {
@@ -34,30 +31,31 @@ class UserController extends Controller
         return response()->json($user);
     }
 
-    public function store(Request $request)
+    public function login(LoginRequest $request)
     {
-        $validated = $request->validate([
-            "name" => "required",
-            "email" => "required|email|unique:users",
-            "password" => "required|min:6",
-        ]);
+        $loginDTO = LoginDTO::fromRequest($request);
 
         return response()->json(
-            $this->userService->create($validated),
+            $this->userService->login($loginDTO)
+        );
+    }
+
+    public function store(StoreUserRequest $request)
+    {
+        $userDTO = UserDTO::fromRequest($request);
+
+        return response()->json(
+            $this->userService->create($userDTO),
             201
         );
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateUserRequest $request, $id)
     {
-        $validated = $request->validate([
-            "name" => "sometimes",
-            "email" => "sometimes|email|unique:users",
-            "password" => "sometimes|min:6",
-        ]);
+        $userDTO = UserDTO::fromRequest($request);
 
         return response()->json(
-            $this->userService->update($id, $validated),
+            $this->userService->update($id, $userDTO),
             200
         );
     }

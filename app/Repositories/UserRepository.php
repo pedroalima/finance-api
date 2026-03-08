@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\DTOs\User\UserDTO;
 use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
@@ -22,23 +23,27 @@ class UserRepository implements UserRepositoryInterface
         return User::find($id);
     }
 
-    public function create(array $data): User
+    public function create(UserDTO $data): User
     {
-        $data['password'] = bcrypt($data['password']);
-        return User::create($data);
+        $password = bcrypt($data->password);
+        return User::create([
+            'name' => $data->name,
+            'email' => $data->email,
+            'password' => $password,
+        ]);
     }
 
-    public function update(int $id, array $data): ?User
+    public function update(int $id, UserDTO $data): ?User
     {
         $user = User::find($id);
 
         if (!$user) return null;
 
-        if (isset($data['password'])) {
-            $data['password'] = bcrypt($data['password']);
+        if (isset($data->password)) {
+            $data->password = bcrypt($data->password);
         }
 
-        $user->update($data);
+        $user->update($data->toArray());
 
         return $user;
     }

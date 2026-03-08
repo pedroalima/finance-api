@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\User;
+use App\DTOs\User\LoginDTO;
+use App\DTOs\User\UserDTO;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Validation\ValidationException;
 
@@ -12,11 +13,11 @@ class UserService
         private UserRepositoryInterface $userRepository
     ) {}
 
-    public function login(array $data)
+    public function login(LoginDTO $data)
     {
-        $user = $this->userRepository->findByEmail($data['email']);
+        $user = $this->userRepository->findByEmail($data->email);
 
-        if (!$user || !password_verify($data['password'], $user->password)) {
+        if (!$user || !password_verify($data->password, $user->password)) {
             throw ValidationException::withMessages(['email' => 'Email ou senha incorretos']);
         }
 
@@ -38,12 +39,12 @@ class UserService
         return $this->userRepository->findById($id);
     }
 
-        public function create(array $data)
+    public function create(UserDTO $data)
     {
         return $this->userRepository->create($data);
     }
 
-    public function update(int $id, array $data)
+    public function update(int $id, UserDTO $data)
     {
         return $this->userRepository->update($id, $data);
     }

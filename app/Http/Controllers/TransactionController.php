@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\ApiResponseTrait;
+use App\DTOs\Transaction\TransactionDTO;
+use App\Http\Requests\Transaction\StoreTransactionRequest;
 use App\Models\Transaction;
 use App\Services\TransactionService;
 use Illuminate\Http\JsonResponse;
@@ -48,27 +50,17 @@ class TransactionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request) : JsonResponse
+    public function store(StoreTransactionRequest $request) : JsonResponse
     {
-        $data = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'amount' => 'required|numeric',
-            'type_id' => 'required',
-            'date' => 'required|date',
-            'description' => 'nullable|string',
-            'account_id' => 'required|exists:accounts,id',
-            'category_id' => 'required|exists:categories,id',
-            'installment' => 'required|boolean',
-            'installment_number' => 'nullable|integer',
-        ]);
+        $transactionDTO = TransactionDTO::fromRequest($request);
 
-        if (!$data) {
+        if (!$transactionDTO) {
             return $this->errorResponse(null, 'Erro ao criar transação.', 500);
         }
 
-        $this->transactionService->create($data);
+        $this->transactionService->create($transactionDTO);
 
-        return $this->successResponse($data, 'Transação criada com sucesso.');
+        return $this->successResponse($transactionDTO->toArray(), 'Transação criada com sucesso.');
     }
 
     /**

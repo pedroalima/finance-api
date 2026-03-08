@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DTOs\Transaction\TransactionDTO;
 use App\Repositories\Contracts\TransactionRepositoryInterface;
 use Carbon\Carbon;
 
@@ -26,13 +27,13 @@ class TransactionService
         return $this->transactionRepository->findById($id);
     }
 
-    public function create(array $data)
+    public function create(TransactionDTO $data)
     {
-        if ($data['description'] == null || $data['description'] == '') {
-            $data['description'] = 'Sem descrição';
+        if ($data->description == null || $data->description == '') {
+            $data->description = 'Sem descrição';
         }
 
-        if ($data['installment']) {
+        if ($data->installment) {
             return $this->handleInstallments($data);
         }
 
@@ -49,30 +50,30 @@ class TransactionService
         return $this->transactionRepository->delete($id);
     }
 
-    private function handleInstallments(array $data)
+    private function handleInstallments(TransactionDTO $data)
     {
-        $installmentNumber = $data['installment_number'];
-        $installmentAmount = $data['amount'] / $installmentNumber;
+        $installmentNumber = $data->installment_number;
+        $installmentAmount = $data->amount / $installmentNumber;
 
-        $initialDate = Carbon::parse($data['date']);
+        $initialDate = Carbon::parse($data->date);
 
         for ($i = 1; $i <= $installmentNumber; $i++) {
 
             $transactionDate = $initialDate->copy()->addMonths($i - 1);
 
             $installmentData = [
-                'user_id' => $data['user_id'],
+                'user_id' => $data->user_id,
                 'amount' => $installmentAmount,
-                'type_id' => $data['type_id'],
+                'type_id' => $data->type_id,
                 'date' => $transactionDate,
-                'description' => "{$data['description']} {$i}/{$installmentNumber}",
-                'account_id' => $data['account_id'],
-                'category_id' => $data['category_id'],
+                'description' => "{$data->description} {$i}/{$installmentNumber}",
+                'account_id' => $data->account_id,
+                'category_id' => $data->category_id,
                 'installment' => true,
                 'installment_number' => $i,
             ];
 
-            $this->transactionRepository->create($installmentData);
+            $this->transactionRepository->create(TransactionDTO::fromArray($installmentData));
         }
 
         return true;

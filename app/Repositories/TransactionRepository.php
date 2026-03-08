@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\DTOs\Transaction\TransactionDTO;
 use App\Models\Transaction;
 use App\Repositories\Contracts\TransactionRepositoryInterface;
 
@@ -24,9 +25,9 @@ class TransactionRepository implements TransactionRepositoryInterface
         return Transaction::find($id);
     }
 
-    public function create(array $data)
+    public function create(TransactionDTO $data)
     {
-        return Transaction::create($data);
+        return Transaction::create($data->toArray());
     }
 
     public function update(int $id, array $data)
