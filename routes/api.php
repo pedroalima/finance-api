@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 // Rotas públicas
 Route::post('/users', [UserController::class, 'store']);      // registrar
 Route::post('/auth/login', [UserController::class, 'login']); // login
+Route::post('/auth/forgot-password', [UserController::class, 'forgotPassword']); // esqueci senha
 
 // Rotas privadas
 Route::middleware('auth:sanctum')->group(function () {

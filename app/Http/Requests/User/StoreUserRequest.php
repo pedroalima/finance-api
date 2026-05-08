@@ -27,4 +27,16 @@ class StoreUserRequest extends FormRequest
             "password" => "required|min:6",
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            "name.required" => "O nome é obrigatório",
+            "email.required" => "O email é obrigatório",
+            "email.email" => "O email deve ser válido",
+            "email.unique" => "O email já está cadastrado",
+            "password.required" => "A senha é obrigatória",
+            "password.min" => "A senha deve ter no mínimo 6 caracteres",
+        ];
+    }
 }

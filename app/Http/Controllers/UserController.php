@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\DTOs\User\LoginDTO;
 use App\DTOs\User\UserDTO;
+use App\Http\Requests\User\ForgotPasswordRequest;
 use App\Http\Requests\User\LoginRequest;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
@@ -48,6 +49,13 @@ class UserController extends Controller
             $this->userService->create($userDTO),
             201
         );
+    }
+
+    public function forgotPassword(ForgotPasswordRequest $request)
+    {
+        $userDTO = UserDTO::fromRequest($request);
+
+        return response()->json($this->userService->forgotPassword($userDTO), 200);
     }
 
     public function update(UpdateUserRequest $request, $id)

@@ -22,5 +22,14 @@ services:
         volumes:
             - mysql_data:/var/lib/mysql
 
+    mailpit:
+        image: 'axllent/mailpit:latest'
+        container_name: finance-mail
+        ports:
+            - '1025:1025' # Porta do servidor SMTP (onde o Laravel envia)
+            - '8025:8025' # Interface Web (onde você visualiza os e-mails)
+        networks:
+            - default
+            
 volumes:
     mysql_data:

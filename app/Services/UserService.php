@@ -4,7 +4,10 @@ namespace App\Services;
 
 use App\DTOs\User\LoginDTO;
 use App\DTOs\User\UserDTO;
+use App\Mail\ResetPasswordMail;
+use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class UserService
@@ -42,6 +45,23 @@ class UserService
     public function create(UserDTO $data)
     {
         return $this->userRepository->create($data);
+    }
+
+    public function forgotPassword(UserDTO $data)
+    {
+        $user = User::where('email', $data->email)->first();
+
+        if ($user) {
+            $link = "https://meuapp.com/reset-password?token=XYZ123"; // Simulação
+
+            // Envia o e-mail
+            Mail::to($user->email)->send(new ResetPasswordMail($user->name, $link));
+
+            return ['message' => 'Se o e-mail existir, as instruções foram enviadas.'];
+        } else {
+
+            return ['message' => 'Não foi possível encontrar um usuário com esse e-mail.'];
+        }
     }
 
     public function update(int $id, UserDTO $data)
