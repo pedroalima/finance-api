@@ -8,6 +8,7 @@ use App\Mail\ResetPasswordMail;
 use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class UserService
@@ -52,16 +53,33 @@ class UserService
         $user = User::where('email', $data->email)->first();
 
         if ($user) {
-            $link = "https://meuapp.com/reset-password?token=XYZ123"; // Simulação
+            $token = Str::random(60);
+
+            $link = route('password.reset', ['token' => $token, 'email' => $user->email]);
 
             // Envia o e-mail
             Mail::to($user->email)->send(new ResetPasswordMail($user->name, $link));
 
-            return ['message' => 'Se o e-mail existir, as instruções foram enviadas.'];
-        } else {
-
-            return ['message' => 'Não foi possível encontrar um usuário com esse e-mail.'];
         }
+
+        return ['message' => 'Se o e-mail existir, as instruções foram enviadas.'];
+    }
+
+    public function updatePassword(UserDTO $data)
+    {
+        $user = User::where('email', $data->email)->first();
+
+        if (!$user) {
+            throw new \Exception("Usuário não encontrado.");
+        }
+
+        $updateDTO = new UserDTO(
+            name: $user->name,
+            email: $user->email,
+            password: $data->password
+        );
+
+        return $this->update($user->id, $updateDTO);
     }
 
     public function update(int $id, UserDTO $data)

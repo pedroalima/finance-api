@@ -7,6 +7,7 @@ use App\DTOs\User\UserDTO;
 use App\Http\Requests\User\ForgotPasswordRequest;
 use App\Http\Requests\User\LoginRequest;
 use App\Http\Requests\User\StoreUserRequest;
+use App\Http\Requests\User\UpdatePasswordRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Services\UserService;
 
@@ -56,6 +57,15 @@ class UserController extends Controller
         $userDTO = UserDTO::fromRequest($request);
 
         return response()->json($this->userService->forgotPassword($userDTO), 200);
+    }
+
+    public function updatePassword(UpdatePasswordRequest $request)
+    {
+        $userDTO = UserDTO::fromRequest($request);
+
+        $this->userService->updatePassword($userDTO);
+
+        return view('auth.success-password');
     }
 
     public function update(UpdateUserRequest $request, $id)
