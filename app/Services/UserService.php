@@ -79,7 +79,7 @@ class UserService
             password: $data->password
         );
 
-        return $this->update($user->id, $updateDTO);
+        return $this->userRepository->update($user->id, $updateDTO);
     }
 
     public function update(int $id, UserDTO $data)

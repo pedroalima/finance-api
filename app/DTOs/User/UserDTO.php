@@ -24,7 +24,7 @@ class UserDTO
         return [
             'name' => $this->name,
             'email' => $this->email,
-            'password' => $this->password ? bcrypt($this->password) : null,
+            'password' => $this->password,
         ];
     }
 }
