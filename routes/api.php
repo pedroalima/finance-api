@@ -17,10 +17,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('transactions', TransactionController::class);
 
     // CRUD de usuários (menos o store, que é público)
+    Route::get('/user/me', [UserController::class, 'me']);
     Route::apiResource('users', UserController::class)->except(['store']);
-
-    // Dados do usuário logado
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
 });

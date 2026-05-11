@@ -10,6 +10,7 @@ use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdatePasswordRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Services\UserService;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
@@ -20,6 +21,11 @@ class UserController extends Controller
     public function index()
     {
         return response()->json($this->userService->getAll());
+    }
+
+    public function me(Request $request)
+    {
+        return response()->json($request->user()->only(['name', 'balance']));
     }
 
     public function show($id)
